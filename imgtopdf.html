@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PDF Converter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+       * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(120deg, #20232a, #2c3e50);
+    color: #ffffff;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+}
+
+h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    background: linear-gradient(120deg, #00f2fe, #4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.upload-area {
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: #4facfe;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.upload-icon {
+    font-size: 48px;
+    color: #4facfe;
+    margin-bottom: 15px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(120deg, #4facfe, #00f2fe);
+    color: white;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 20px 0;
+}
+
+.custom-file-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+}
+
+button {
+    background: linear-gradient(120deg, #00f2fe, #4facfe);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.file-info {
+    margin-top: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+/* Media Queries */
+
+/* Small devices (phones) */
+@media (max-width: 480px) {
+    .container {
+        padding: 25px;
+        border-radius: 15px;
+    }
+
+    h2 {
+        font-size: 2rem;
+    }
+
+    .upload-area {
+        padding: 20px;
+    }
+
+    .upload-icon {
+        font-size: 36px;
+    }
+
+    .custom-file-upload, button {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+}
+
+/* Medium devices (tablets) */
+@media (max-width: 768px) {
+    .container {
+        padding: 30px;
+    }
+
+    h2 {
+        font-size: 2.2rem;
+    }
+
+    .upload-area {
+        padding: 25px;
+    }
+
+    .custom-file-upload, button {
+        padding: 14px 30px;
+    }
+}
+
+/* Large devices (small desktops/laptops) */
+@media (max-width: 1024px) {
+    .container {
+        width: 80%;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Image to PDF Converter</h2>
+        <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+            <p>Drag & drop your images here or click to browse</p>
+        </div>
+        <label class="custom-file-upload">
+            <input type="file" id="imageInput" multiple accept="image/*" onchange="updateFileInfo()">
+            Select Images
+        </label>
+        <div class="file-info" id="fileInfo"></div>
+        <button onclick="convertToPDF()">
+            <i class="fas fa-file-pdf"></i> Convert to PDF
+        </button>
+    </div>
+
+    <script>
+        function updateFileInfo() {
+            const files = document.getElementById('imageInput').files;
+            const fileInfo = document.getElementById('fileInfo');
+            if (files.length > 0) {
+                fileInfo.textContent = `${files.length} file(s) selected`;
+            } else {
+                fileInfo.textContent = '';
+            }
+        }
+
+        async function convertToPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            const files = document.getElementById('imageInput').files;
+
+            if (files.length === 0) {
+                alert("Please select at least one image.");
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.readAsDataURL(file);
+                await new Promise(resolve => reader.onload = resolve);
+
+                const img = new Image();
+                img.src = reader.result;
+                await new Promise(resolve => img.onload = resolve);
+
+                const width = pdf.internal.pageSize.getWidth();
+                const height = (img.height * width) / img.width;
+                if (i > 0) pdf.addPage();
+                pdf.addImage(img, 'JPEG', 0, 0, width, height);
+            }
+
+            pdf.save("images.pdf");
+        }
+    </script>
+</body>
+</html>
